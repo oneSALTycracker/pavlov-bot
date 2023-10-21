@@ -217,24 +217,34 @@ class Pavlov(commands.Cog):
             return embed.description
         await ctx.send(embed=embed)
 
-    @commands.command()  # Exceeds Helptext embed, maplist hidden for now
-    async def maplist(self, ctx, server_name: str = config.default_server):
-        """`{prefix}maplist <server_name>` - *Lists configured maps on a server*
+    @bot.command()
+    async def anyoneplayingtime(ctx, server_group: str = None):
+        # Your existing code for the anyoneplayingtime command
+    
+    def schedule_anyoneplayingtime():
+        # Schedule the anyoneplayingtime command to run every 5 minutes
+        bot.loop.create_task(anyoneplayingtime())
+        
+        @commands.command()  # Exceeds Helptext embed, maplist hidden for now
+        async def maplist(self, ctx, server_name: str = config.default_server):
+            """`{prefix}maplist <server_name>` - *Lists configured maps on a server*
+    
+            **Example**: `{prefix}maplist rush`
+            """
+            data, _ = await exec_server_command(ctx, server_name, "MapList")
+            map_list = data.get("MapList")
+            embed = discord.Embed(title=f"**Active maps** on `{server_name}`:")
+            embed.description = "\n"
+            if len(map_list) == 0:
+                embed.description = f"Currently no active maps on `{server_name}`"
+            for _map in map_list:
+                embed.description += f"\n - {_map.get('MapId', '')} <{_map.get('GameMode')}>"
+            if ctx.batch_exec:
+                return embed.description
+            await ctx.send(embed=embed)
 
-        **Example**: `{prefix}maplist rush`
-        """
-        data, _ = await exec_server_command(ctx, server_name, "MapList")
-        map_list = data.get("MapList")
-        embed = discord.Embed(title=f"**Active maps** on `{server_name}`:")
-        embed.description = "\n"
-        if len(map_list) == 0:
-            embed.description = f"Currently no active maps on `{server_name}`"
-        for _map in map_list:
-            embed.description += f"\n - {_map.get('MapId', '')} <{_map.get('GameMode')}>"
-        if ctx.batch_exec:
-            return embed.description
-        await ctx.send(embed=embed)
 
+    
     @commands.command()
     async def players(
         self,
