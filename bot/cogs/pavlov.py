@@ -468,6 +468,64 @@ class Pavlov(commands.Cog):
         file = text_to_image(desc, "anyoneplaying.png")
         await ctx.send(file=file)
 
+@commands.command()
+async def anyoneplayingtime(self, ctx, server_group: str = None):
+    """`{prefix}anyoneplayingtime` - *Provides a table with info for all servers"""
+    # Replace 'YOUR_CHANNEL_ID' with the actual channel ID where you want to send the message.
+    channel_id = 914095325009035294
+    
+    while True:
+        players_header = ANYONEPLAYING_ROW_FORMAT.format(
+            alias="Alias",
+            server_name="Server Name",
+            map_name="Map Name",
+            map_alias="Map Alias",
+            player_count="Players",
+        )
+        desc = f"\n{players_header}\n{'-'*len(players_header)}\n"
+        for server_alias in servers.get_names(server_group):
+            try:
+                data, _ = await exec_server_command(ctx, server_alias, "ServerInfo")
+                server_info = data.get("ServerInfo", {})
+                players_count = server_info.get("PlayerCount", "0/0")
+                server_name = server_info.get("ServerName", "")
+                map_label = server_info.get("MapLabel")
+                if map_label starts with "SVR":
+                    map_name = map_label
+                else:
+                    map_name, _ = await self.get_map_alias(map_label)
+                map_alias = aliases.find_map_alias(map_label)
+                if not map_name:
+                    map_name = ""
+                if not map_alias:
+                    map_alias = ""
+                desc += ANYONEPLAYING_ROW_FORMAT.format(
+                    alias=server_alias,
+                    server_name=server_name,
+                    map_name=map_name,
+                    map_alias=map_alias,
+                    player_count=players_count,
+                )
+                desc += "\n"
+            except (ConnectionRefusedError, OSError, TimeoutError):
+                desc += ANYONEPLAYING_ROW_FORMAT.format(
+                    alias=server_alias,
+                    server_name="SERVER UNAVAILABLE",
+                    map_name="N/A",
+                    map_alias="N/A",
+                    player_count="N/A",
+                )
+                desc += "\n"
+        file = text_to_image(desc, "anyoneplaying.png")
+        
+        # Get the channel object using the channel ID
+        channel = await ctx.bot.get_channel(channel_id)
+        
+        # Send the message to the specified channel
+        await channel.send(file=file)
+        
+        # Wait for 5 minutes before sending again
+        await asyncio.sleep(300)
 
 def setup(bot):
     bot.add_cog(Pavlov(bot))
